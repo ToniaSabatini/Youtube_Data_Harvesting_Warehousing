@@ -28,19 +28,19 @@ with st.sidebar:
                                    "nav-link-selected": {"background-color": "#ff0000"}})
 
 # Bridging a connection with MongoDB Atlas and Creating a new database(youtube_data)
-client = pymongo.MongoClient("mongodb+srv://Tonia:SabatiniA@cluster0.2b07pq3.mongodb.net/?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://Tonia:********@cluster0.2b07pq3.mongodb.net/?retryWrites=true&w=majority")
 db = client.Youtube_Data_Toni
 # CONNECTING WITH MYSQL DATABASE
 mydb = sql.connect(host="127.0.0.1",
                    user="root",
-                   password="Adrielsheena@03",
+                   password="*******",
                    database="youtube",
                    port="3306"
                    )
 mycursor = mydb.cursor(buffered=True)
 
 # BUILDING CONNECTION WITH YOUTUBE API
-api_key = "AIzaSyAAHZ43cCAivsOZfC6E_1DWo9eQCw2Im_k"  # "AIzaSyDQYpHKd36QOoBloxRsemSzSITMepCzoTU"
+api_key = "*******************************************"     #Add Youtube API key  
 youtube = build('youtube', 'v3', developerKey=api_key)
 
 
