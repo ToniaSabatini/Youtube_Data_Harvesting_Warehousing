@@ -1,3 +1,4 @@
+# Import necessary libraries
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -8,6 +9,7 @@ from googleapiclient.discovery import build
 from PIL import Image
 
 # SETTING PAGE CONFIGURATIONS
+# Set the title, icon, layout, and menu items for the Streamlit app
 icon = Image.open("D:\Project\Youtube-logo.png")
 st.set_page_config(page_title="Youtube Data Harvesting and Warehousing | By Tonia Sabatini",
                    page_icon=icon,
@@ -16,6 +18,7 @@ st.set_page_config(page_title="Youtube Data Harvesting and Warehousing | By Toni
                    menu_items={'About': """# This app is created by *Tonia Sabatini!*"""})
 
 # CREATING OPTION MENU
+# Create an option menu in the Streamlit sidebar for navigation
 with st.sidebar:
     selected = option_menu(None, ["Home", "Extract & Transform", "View"],
                            icons=["house-door-fill", "tools", "card-text"],
@@ -27,22 +30,24 @@ with st.sidebar:
                                    "container": {"max-width": "5000px"},
                                    "nav-link-selected": {"background-color": "#ff0000"}})
 
-# Bridging a connection with MongoDB Atlas and Creating a new database(youtube_data)
-client = pymongo.MongoClient("mongodb+srv://Tonia:********@cluster0.2b07pq3.mongodb.net/?retryWrites=true&w=majority")
+# Bridging a connection with MongoDB Atlas and Creating a new database (youtube_data)
+# Establish a connection with MongoDB Atlas and select the database
+client = pymongo.MongoClient("mongodb+srv://Tonia:SabatiniA@cluster0.2b07pq3.mongodb.net/?retryWrites=true&w=majority")
 db = client.Youtube_Data_Toni
+
 # CONNECTING WITH MYSQL DATABASE
+# Connect to the MySQL database
 mydb = sql.connect(host="127.0.0.1",
                    user="root",
-                   password="*******",
+                   password="8888888888883",
                    database="youtube",
                    port="3306"
                    )
 mycursor = mydb.cursor(buffered=True)
 
 # BUILDING CONNECTION WITH YOUTUBE API
-api_key = "*******************************************"     #Add Youtube API key  
+api_key = "8888888888888888888888888888888888888888888"  
 youtube = build('youtube', 'v3', developerKey=api_key)
-
 
 # FUNCTION TO GET CHANNEL DETAILS
 def get_channel_details(channel_id):
@@ -106,8 +111,8 @@ def get_video_details(v_ids):
                                  Description=video['snippet']['description'],
                                  Published_date=video['snippet']['publishedAt'],
                                  Duration=video['contentDetails']['duration'],
-                                 Views=video['statistics']['viewCount'],
-                                 Likes=video['statistics'].get('likeCount'),
+                                 View_count=video['statistics']['viewCount'],
+                                 Like_count=video['statistics'].get('likeCount'),
                                  Comments=video['statistics'].get('commentCount'),
                                  Favorite_count=video['statistics']['favoriteCount'],
                                  Definition=video['contentDetails']['definition'],
@@ -211,7 +216,6 @@ if selected == "Extract & Transform":
 
 
                 comm_details = comments()
-
                 collections1 = db.channel_details
                 collections1.insert_many(ch_details)
 
@@ -229,7 +233,7 @@ if selected == "Extract & Transform":
         ch_names = channel_names()
         user_inp = st.selectbox("Select channel", options=ch_names)
 
-
+    # Functions for inserting data into SQL tables
     def insert_into_channels():
         collections = db.channel_details
         query = """INSERT INTO channels VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"""
@@ -259,7 +263,6 @@ if selected == "Extract & Transform":
             for i in collections2.find({'Video_id': vid['Video_id']}, {'_id': 0}):
                 mycursor.execute(query2, tuple(i.values()))
                 mydb.commit()
-
 
     if st.button("Submit"):
         try:
@@ -389,6 +392,10 @@ if selected == "View":
                             GROUP BY channel_name
                             ORDER BY AVG(duration)/60 DESC""")
         df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names)
+
+        df['Average_Video_Duration (mins)'] = df['Average_Video_Duration (mins)'].apply(
+            lambda x: f'{int(x):02}:{int((x % 1) * 60):02}:{int(((x % 1) * 60) % 1 * 60):02}')
+
         st.write(df)
         st.write("### :green[Avg video duration for channels :]")
         fig = px.bar(df,
@@ -400,20 +407,20 @@ if selected == "View":
         st.plotly_chart(fig, use_container_width=True)
 
     elif questions == '10. Which videos have the highest number of comments, and what are their corresponding channel names?':
-        mycursor.execute("""SELECT channel_name AS Channel_Name,Video_id AS Video_ID,Comment_count AS Comments
-                            FROM videos
-                            ORDER BY comments DESC
-                            LIMIT 10""")
-        df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names)
-        st.write(df)
-        st.write("### :green[Videos with most comments :]")
-        fig = px.bar(df,
-                     x=mycursor.column_names[1],
-                     y=mycursor.column_names[2],
+         mycursor.execute("""SELECT Video_id AS Video_ID, Comment_count AS Comments
+                                FROM comments
+                                ORDER BY Comment_count DESC
+                                LIMIT 10""")
+         df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names)
+         st.write(df)
+         st.write("### :green[Videos with most comments :]")
+         fig = px.bar(df,
+                     x=mycursor.column_names[0],
+                     y=mycursor.column_names[1],
                      orientation='v',
                      color=mycursor.column_names[0]
                      )
-        st.plotly_chart(fig, use_container_width=True)
+         st.plotly_chart(fig, use_container_width=True)
 
 
 
